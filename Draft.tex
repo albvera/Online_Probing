@@ -1,0 +1,196 @@
+\documentclass[letterpaper,11pt]{article}
+%--------------Document configuration begins--------------
+\usepackage{fullpage}
+\usepackage[numbers]{natbib} 	%\citet{jon90} --> Jones et al. [21], \citep{jon90} --> [21]
+\usepackage[colorlinks]{hyperref}
+%--------------Document configuration ends--------------
+
+\usepackage{microtype}
+
+\usepackage{commandsrm}
+\usepackage{commands_theo} 			%Theorems, lemmas, proofs, etc
+%Load cleveref last
+\usepackage[capitalize]{cleveref}
+
+
+\bibliographystyle{plain}
+
+\title{\vspace{-1cm} \bf Approximate DP and Regret Analysis   \vspace{-1.3cm}}
+\author{}
+\begin{document}
+\maketitle
+
+\section{Probing}
+
+\paragraph{Problem Statement}
+At each time $t$, an arrival is drawn from a set of $n$ types, such that $j\in[n]$ arrives with probability $p_j$.
+An arrival can be \emph{active or inactive} with a known probability; inactive arrivals generate no reward, but do consume resources.
+A type $j$ has an associated reward $r_j\geq 0$ and a probability $q_j\in [0,1]$: Conditioned on being of type $j$, the reward of an arrival is $r_j\cdot \Ber(q_j)$.
+The decision-maker is given hiring and probing budgets $B_h,B_p\in\N$.
+If he chooses to probe an arrival, then he can see the realization of the Bernoulli before accepting, thus protecting him against inactive arrivals.
+He can also choose to accept the arrival without probing, in such case the reward is random, but it does not consume probing budget.
+
+Even with full knowledge of the arrivals $Z_j$, the problem of adaptively choosing which arrivals to probe or accept is difficult.
+Indeed, the state space has size $\prod_jZ_j = \Omega(\T^n)$.
+This is the reason why the prevalent focus in recent research has been to bound the adaptivity gap first and then search for simpler policies \cite{adaptivity_gaps}.
+
+We define \off to be the agent who knows the arrival process $Z(t)$, but does not know the result of the Bernoulli trials.
+The value function $\voff(t,b_h,b_p)$ is determined by the natural Bellman Equations.
+We start by providing an upper bound to the value function, defined by the following decision variables representing total numbers, not binary values: $y_j$ is the number of type $j$ we probed, $x_{ja}$ is the number of type $j$ accepted without probing and $x_{jp}$ is the number of type $j$ accepted after probing.
+
+\begin{proposition}
+For any $b_h,b_p\in\N$, $t\in[\T]$ and realization $Z$ of arrivals, $\voff(t,b_h,b_p)$ is upper bounded by
+\begin{equation}\label{eq:probing_relaxation}
+\begin{array}{rrll}
+(P^\star)\quad \max  & \sum_jr_j(x_{jp}+q_jx_{ja}) \\
+\text{s.t.}& \sum_j y_j & \leq b_p \\
+& \sum_j(x_{jp}+x_{ja}) &\leq b_h \\
+&  x_{ja} + y_j & \leq Z_j(t)  &\forall j\in [n] \\
+& x_{jp} &\leq q_jy_j & \forall j \in [n] \\
+& y_j,x_{j,a},x_{j,p}&\geq 0 & \forall j\in[n].
+\end{array}
+\end{equation}
+\end{proposition}	
+\begin{proof}
+Consider any policy for \off which determines when to probe, accept or reject.
+The policy induces a random trajectory, which is determined by the realization of the Bernoulli variables, not the arrivals, since the later are given.
+Define the following random variables, counting the number of times in which a type $j$: was probed, denoted $Y_j$; was accepted without probing, $X_{ja}$; and was accepted after probing, $X_{jp}$.
+Finally, let $Y_{j}^+,X_{ja}^+$ be the number of active from among those probed or accepted, respectively.
+We assume w.l.o.g.\ that, among the probed elements, \off takes only active ones.
+
+Our aim is to argue that, replacing the aforementioned r.v.\ with their expectations, yields a feasible solution to $(P^\star)$.
+It holds $\voff(t,b_h,b_p) = \E[\sum_j r_j(X_{jp}+X_{ja}^+)]$ and $\E[X_{ja}^+|X_{ja}]=q_jX_{ja}$, thus
+\[
+\voff(t,b_h,b_p) = \sum_jr_j(\E[X_{jp}]+q_j\E[X_{ja}]).
+\] 
+
+With the exception of the constraint $x_{jp}\leq q_jy_j$, $X_{ja},Y_j,X_{jp}$ satisfy a.s.\ all the constraints of $(P^\star)$, hence their expectations do too.
+Observe that $X_{jp}\leq Y_{j}^+$ and $\E[Y_j^+]=q_j\E[Y_j]$, thus $\E[X_{jp}]\leq q_j\E[Y_j]$.
+To summarize, $\voff(t,b_h,b_p)$ equals the value of the feasible solution given by the expectations, so $v(P^\star)$ can be only larger.
+\end{proof}
+
+
+
+
+\section{General Version}
+
+Consider a DP with state space $\St$ and a sequence of arrivals $\Jt\in\J$ for $t\in[\T]$, where $t$ is the \emph{time to-go}.
+We assume $\Jt$ evolves as a Markov chain on state space $\Jt$, with known transition matrix and initial distribution.
+
+For every state $s\in\St$, arrival $j\in \J$ and control $u\in\U$, we  collect a reward $\Re(s,j,u)$, which could be $-\infty$ and transition to the state $\Tr(s,j,u)$.
+Observe that the reward function is deterministic, but the input $j$ is random, thus making the reward itself at each time a random variable.
+Any time dependence will be embedded in the process $\Jt$, e.g., if the randomness represents unknown demand, the state of the Markov chain could be of the form $\J=\crl{(t,x):t\in[\T],x\in\Rp}$, where the first component gives us the time and the second the demand for the period.
+
+Given this formulation, the value function at any given time can be expressed as
+\begin{equation}
+v(t,s) = \E_{\Jt,\ldots,J^1}\brk*{\max_{u^t,\ldots,u^1}\sum_{\tau=1}^t\Re(S^\tau,J^\tau,u^\tau) \text{ s.t. }  S^t=s \text{ and } S^{\tau-1}=\Tr(S^\tau,J^\tau,u^\tau) \forall \tau<t }.
+\end{equation}
+
+Even if we reveal the entire input sequence, the problem inside of the expectation could be NP-Hard.
+We can define \off as the agent that knows the entire sequence, but this is too pessimistic and in general does not lead to sensible algorithms.
+Instead, we will define a hierarchy of such agents, each with more information.
+
+We now start imposing assumptions to guarantee two things: (1) we can find a \emph{tractable relaxation} to the maximization problem and (2) the relaxation is useful for \onl.
+The first point will be achieved by obtaining a concave maximization program with convex constraints, while the second requires \emph{revealing some, but not all, information} to \off.
+
+\paragraph{Assumption: Finite Dimension}
+We identify $\St\subseteq \R^\ds$ and $\U\subseteq\R^\du$.
+
+\paragraph{Assumption: Linear Transitions}
+There are operators $A,B$ such that, given a control $u^{t+1}$ at state $S^{t+1}$, the system transitions as follows
+\[
+S^{t} = AS^{t+1} + Bu^{t+1}, t\in[\T-1], \quad 
+S^T \text{ given}.
+\]
+By a simple induction, given a sequence of controls $u^\tau$ for $\tau=\T,\ldots,t+1$, the state at time $t$ is
+\[
+S^t = A^{T-t}S^T + \sum_{\tau=t+1}^\T A^{\tau-1-t}Bu^\tau, \quad t\in[T].
+\]
+
+If $A$ is idempotent (a projection), then the formula simplifies greatly.
+\anote{	For now we will assume $A$ is the identity, but with any projection the results should be similar.}
+In this case we have the simpler formula
+\begin{equation}\label{eq:linear_state}
+S^t = S^T + \sum_{\tau=t+1}^\T Bu^\tau, \quad t\in[T].
+\end{equation}
+
+For notation simplicity, we assume $0\in \R^\du$ is a valid action.
+
+
+\paragraph{Assumption: Subadditve Concave Rewards}
+The reward function $\Re(s,j,u)$ depends on $s,j$ only to specify feasible controls, i.e., combinations of arrivals and controls that give reward $-\infty$.
+Formally, define $\U(s,j)\defeq \crl{u\in\U: \Re(s,j,u)>-\infty}$.
+We assume that $\Re(s,j,u)$ is just a function of $u$ provided that $u\in\U(s,j)$.
+
+Additionally, we assume that either (1) $\Re(u)$ is concave and subadditive or (2) there is a concave function $\tilde \Re:\U^\T\to\R$ such that $\sum_t\Re(u^t)\leq \tilde \Re(\sum_t u^t)$.
+
+The operator $B$ is also subadditive.
+
+\paragraph{Assumption: Finite Basis for the Controls}
+The hope is that we can aggregate arrivals in a convenient way.
+For this aim, we need to reduce the information in $\J$.
+Assume there is a finite $\dI\in\N$ and an index function $I:\J\to[\dI]$.
+Intuitively, if $j,j'\in\J$ are such that $I(j)=I(j')$, then they are identical in terms of reward and feasibility constraints.
+We denote interchangeably $I_j=I(j)$.
+
+We assume there are convex functions $f_i:\R^\ds\times\R^\du\to\R^\di$ and discrete sets $\U_i$ such that
+\[
+\U(s,j) = \crl{u\in \U_{I_j}: f_{I_j}(s,u)\leq 0}.
+\]
+We denote $k_i\defeq \abs{\U_i}$ the number of available controls for index $i$ and enumerate its elements as $\U_i = \crl{u_{k,i}: k\in [k_i]}$. 
+
+We define the processes $Z_i(t)=\sum_{\tau\leq t}\In{J^\tau=i}$.
+
+\anote{For now I'm thinking of a discrete set of controls (e.g. accept, reject) and the results will depend on the number of controls.
+Nevertheless, I think there is an extension to, e.g., reject or sell $k$ units, with $k\in\N$.
+It is important that the ``basis" has small dimension, rather than the controls themselves. 
+}
+
+\paragraph{Assumption: Monotonicity}
+The state $S^t$ is monotone over time.
+Additionally, the functions $f_i(s,u)$ are also monotone in $s$.
+\anote{This is not fundamental in the following sense: the state can be monotone by intervals, e.g., the inventory descreases in $T,\ldots,T/2$, but at $T/2$ we can restock, then it decreases again in $T/2-1,\ldots,1$.
+}
+
+\begin{proposition}
+With the assumptions above, given $J^T,\ldots,J^1$, we can upper bound \off's problem by the following concave maximization problem
+\begin{equation}\label{eq:full_relaxation}
+\begin{array}{rrll}
+(P^\star)\quad \max  & \tilde \Re\prn*{\sum_{i\in [\dI]}\sum_{k\in [k_i]}x_{k,i}u_{k,i}} \\
+\text{s.t.}&  \sum_k x_{i,k} & \leq Z_i(T)  &\forall i\in [\dI] \\
+& f\prn*{S^\T+B\sum_{i,k}u_{i,k}y_{i,k},0}&\leq 0 & \forall i\in [\dI] \\
+& x_{i,k}&\geq 0 & \forall i\in [\dI], k\in [k_i] .
+\end{array}
+\end{equation}
+\end{proposition}
+
+Now we will separate the processes into \emph{revealed information} and its counterpart, the \emph{concealed information}.
+\off will have access to the revealed information, but only distributional information for the rest.
+We denote by $\Theta\subseteq [\dI]$ the set of indexes we reveal, meaning that \off knows $Z_i(\T)$ for $i\in\Theta$.
+Below we present the natural fluid relaxation of the concealed information.
+
+\begin{definition}[Fluid Relaxation For Concealed Information]
+If $\Theta$ are the revealed processes, and we denote $Z_\Theta(T)$ as a vector with the components $Z_i(T)$ for $i\in\Theta$, then the following is called the $\Theta$-fluid relaxation
+\begin{equation}\label{eq:theta_relaxation}
+\begin{array}{rrll}
+(P_\Theta)\quad \max  & \tilde \Re\prn*{\sum_{i\in [\dI]}\sum_{k\in [k_i]}x_{k,i}u_{k,i}} \\
+\text{s.t.}&  \sum_k x_{i,k} & \leq Z_i(T)  &\forall i\in \Theta \\
+&  \sum_k x_{i,k} & \leq \E[Z_i(T)| Z_\Theta(T), ]  &\forall i\notin \Theta \\
+& f\prn*{S^\T+B\sum_{i,k}u_{i,k}x_{i,k},0}&\leq 0 & \forall i\in [\dI] \\
+& x_{i,k}&\geq 0 & \forall i\in [\dI], k\in [k_i] .
+\end{array}
+\end{equation}
+\end{definition}
+
+\begin{proposition}
+For any choice of indexes $\Theta$, $v(T,S^T)\leq v(P_\Theta)$	
+\end{proposition}
+
+\begin{definition}[Valid Relaxation]
+	TODO
+\end{definition}
+
+
+\bibliography{biblio}
+
+\end{document}

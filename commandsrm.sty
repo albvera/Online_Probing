@@ -1,0 +1,78 @@
+\ProvidesPackage{commandsrm}
+
+\usepackage{amsmath,amsfonts,dsfont,amssymb}
+
+%useful commands
+\newcommand{\R}{\mathbb{R}}								%reals
+\newcommand{\N}{\mathbb{N}}								%naturals
+\newcommand{\Z}{\mathbb{Z}}								%integers
+\newcommand{\Rp}{\mathbb{R}_{\geq 0}}					%reals >= 0
+\newcommand{\E}{\mathbb{E}}								%expectation
+\renewcommand{\Pr}{\mathbb{P}}							%prob
+\newcommand{\In}[1]{\mathds{1}_{\crl*{ #1}}} 			%indicator
+\newcommand{\Ins}[1]{\mathds{1}_{#1}} 			%indicator of set
+\newcommand{\calN}{\mathcal{N}}
+\newcommand{\defeq}{\coloneqq}							%symbol :=
+
+%parenthesis
+\usepackage{mathtools}
+\DeclarePairedDelimiter{\abs}{\lvert}{\rvert}
+\DeclarePairedDelimiter{\norm}{\lvert\lvert}{\rvert\rvert}
+\DeclarePairedDelimiter{\crl}{\{}{\}} 
+\DeclarePairedDelimiter{\prn}{(}{)} 
+\DeclarePairedDelimiter{\brk}{[}{]} 
+
+%specific commands for RM
+\usepackage{xspace}
+\newcommand{\T}{T}										%horizon
+\newcommand{\voff}{V^{\text{off}}}						%offline value
+\newcommand{\von}{V^{\text{on}}}						%online value			
+\newcommand{\rmax}{r_{\max}}							%max reward
+\newcommand{\pmin}{p_{\min}}                            %min probability
+\newcommand{\Ron}{R^{\text{on}}}						%reward of online at each time
+\newcommand{\Jt}{J^t}                                   %arrival at t
+\newcommand{\onl}{\textsc{Online}\xspace}
+\newcommand{\off}{\textsc{Offline}\xspace}
+\newcommand{\reg}{\text{Regret}\xspace}
+\DeclareMathOperator{\Bin}{Bin}
+\DeclareMathOperator{\Mult}{Multinomial}
+\DeclareMathOperator{\Poiss}{Poisson}
+\DeclareMathOperator{\Uni}{Uniform}
+\DeclareMathOperator{\Ber}{Bernoulli}
+\DeclareMathOperator{\argmin}{argmin}
+\newcommand{\Xt}{X^t}									%fluid solution
+\newcommand{\Xts}{X^{\star t}}							%offline solution
+\newcommand{\pon}{\pi^{\text{on}}}						%online policy
+\newcommand{\poff}{\pi^{\text{off}}}	
+\newcommand{\rl}{\bar r}								%marginal compensation
+\newcommand{\Rl}{\bar R}                                %marginal comp as a r.v.
+\newcommand{\U}{\mathcal{U}}							%control space
+\newcommand{\St}{\mathcal{S}}							%state space
+\newcommand{\J}{\mathcal{J}}                            %arrival space
+\newcommand{\Tr}{\mathcal{T}}							%transition function
+\renewcommand{\Re}{\mathcal{R}}                         %reward function
+\newcommand{\vx}{\mathbf{x}}							%vector x
+\newcommand{\calF}{\mathcal{F}}                         %sigma-algebra
+\newcommand{\dI}{{d_I}}									%dimension of index function
+\newcommand{\du}{{d_u}}									%dimension of controls
+\newcommand{\ds}{{d_s}}									%dimension of the state
+\newcommand{\di}{{d_i}}									%dimension of constraint functions
+
+
+%to leave notes
+\usepackage{todonotes}				%pass option disable to remove	    
+\newcommand{\anote}[1]{\todo[author=Alberto,inline,color=blue!10]{#1}}
+\newcommand{\snote}[1]{\todo[author=Sid,inline,color=magenta!10]{#1}}
+\newcommand{\todonote}[1]{\todo[author=To Do,inline,color=orange!15]{#1}}
+
+%algorithm configuration
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+
+\newenvironment{proofof}[1]{%
+	\begin{proof}[{\sc Proof of #1}]%
+	}{%
+	\end{proof}%
+}
