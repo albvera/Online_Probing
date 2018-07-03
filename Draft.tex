@@ -38,7 +38,7 @@ We define \off to be the agent who knows the arrival process $Z(t)$, but does no
 The value function $\voff(t,b_h,b_p)$ is determined by the natural Bellman Equations.
 We start by providing an upper bound to the value function, defined by the following decision variables representing total numbers, not binary values: $y_j$ is the number of type $j$ we probed, $x_{ja}$ is the number of type $j$ accepted without probing and $x_{jp}$ is the number of type $j$ accepted after probing.
 
-\begin{proposition}
+\begin{proposition}\label[proposition]{prop:probing_relaxation}
 For any $b_h,b_p\in\N$, $t\in[\T]$ and realization $Z$ of arrivals, $\voff(t,b_h,b_p)$ is upper bounded by
 \begin{equation}\label{eq:probing_relaxation}
 \begin{array}{rrll}
@@ -69,24 +69,119 @@ Observe that $X_{jp}\leq Y_{j}^+$ and $\E[Y_j^+]=q_j\E[Y_j]$, thus $\E[X_{jp}]\l
 To summarize, $\voff(t,b_h,b_p)$ equals the value of the feasible solution given by the expectations, so $v(P^\star)$ can be only larger.
 \end{proof}
 
+\section{Probing II: Beyond Bernoulli and formulation as a MCDP}
 
+\paragraph{Problem Statement}
+Same as before, but now a type $j$ is associated with values $r_{j1},r_{j2}>0$ and $q_{j1},q_{j2}\in[0,1]$ such that $q_{j1}+q_{j2}\leq 1$.
+The reward of a type $j$ is $r_{jk}$ with probability $q_{jk}$, $k\in\crl{1,2}$, and $0$ with probability $q_{j0}\defeq1-q_{j1}-q_{j2}$.
+There is a conceptual gap from this case with three values and the binary (active/inactive), but the extension from three to multiple values is straightforward.
+We denote $\bar r_j\defeq r_{j1}q_{j1}+r_{j2}q_{j2}$.
+
+Let us define an \emph{input process} indexed by $t\in[2T]$.
+At even times, the input reveals the type $j$ and at odd times it reveals the actual realization given probabilities $q_{jk}$.
+Formally, let $(\xit)$ be a Markov chain in the state space $[n]\cup\crl{(j,k):j\in[n],k=0,1,2}$.
+The transition probabilities are given by $P_{j,(j,k)}=q_{jk}$, $P_{(j,k),j'}=p_{j'}$.
+For $\xi^{2t-1}=(j,k)$ we define $r(\xi^{2t-1})=r_{jk}$.
+
+The state space for our problem can be described as $\St=\crl{(b_h,b_p),(b_h,b_p,\diamond):b_h,b_p\in\N,\diamond\in \crl{\texttt{a,p,r}}}$, see \cref{fig:probing_states}.
+The component $\diamond$ indicates if we are in the accept, probe or reject stage.
+There is never a $\diamond$ at times $2t$ and, at $2t-1$, feasible controls are different for distinct $\diamond$.
+
+\begin{figure}
+\centering
+\scalebox{0.9}{%
+\input{img/probing_states}
+}
+\caption{Transitions for the online probing problem. 
+Numbers below the arrows represent the reward of a transition.
+At time $2t$ the possible actions are: accept, probe and reject.
+At $2t-1$, depending on $\diamond$, we can either accept or reject and $b_h$ may be discounted.
+}
+\label{fig:probing_states}
+\end{figure}
+
+The natural relaxation is similar to \cref{eq:probing_relaxation}, but it presents a new challenge.
+For binary cases, it was obvious that, if \off wants to probe an arrival, he will always accept it if it is active.
+In this case it could be that \off probes $j$ in hope of observing $r_{j2}$ and will reject $r_{j1}$.
+We must, therefore, reason about \off's actions at all times, instead of just at even times as before and concluding with structural properties.
+
+Let $\calX\defeq\Rp^{4n}$ be the space for the decision variables.
+Note that, by definition, $Z_j(2t-1)=Z_j(2t)-\In{\xi^{2t}=j}$.
+In \cref{eq:probing_even,eq:probing_odd} we present two similar functions, observe that they differ by the last two constraints only.
+
+\begin{equation}\label{eq:probing_even}
+\begin{array}{rrll}
+\varphi(2t,b,Z,\xi^{2t}) \; \max & \multicolumn{3}{l}{\sum_{j,k}r_{jk}(x_{(j,k)a}+q_{jk}x_{ja})} \\
+\text{s.t.}& \sum_j x_{jp} & \leq b_p \\
+& \sum_{j,k}x_{(j,k)a}+\sum_jx_{ja} &\leq b_h \\
+&  x_{ja} +x_{jp} & \leq Z_j(t)  & j\in [n] \\
+& x_{(j,k)a} &\leq q_{jk}x_{jp} &  j \in [n],k\in [2].
+\end{array}
+\end{equation}
+\begin{equation}\label{eq:probing_odd}
+\begin{array}{rrll}
+\varphi(2t-1,b,Z,\xi^{2t-1}) \; \max & \multicolumn{3}{l}{\sum_{j,k}r_{jk}(x_{(j,k)a}+q_{jk}x_{ja})} \\
+\text{s.t.}& \sum_j x_{jp} & \leq b_p \\
+& \sum_{j,k}x_{(j,k)a}+\sum_jx_{ja} &\leq b_h \\
+&  x_{ja} + x_{jp} & \leq Z_j(t)-\In{\xi^{2t}=j}  & j\in [n] \\
+& x_{(j,k)a} &\leq q_{jk}x_{jp} + \In{\xi^{2t-1}=(j,k)}&  j \in [n],k\in [2].
+\end{array}
+\end{equation}
+
+An argument as in \cref{prop:probing_relaxation} shows that $\voff(t,b)\leq \varphi(t,b,Z,\xit)$.
+We can pretend, thus, that \off agrees to receive rewards according to $\varphi$.
+To make this precise, we need a map between two worlds, since \onl decides on actions \texttt{a,p,r} and \off on points in $\calX$.
+
+\begin{lemma}
+Let $\bar X\in\calX$ be a maximizer of $\varphi(2t,b,Z,\xi^{2t})$.
+Say $\xi^{2t}=j$, then, at time $2t$, \off is satisfied with the following actions:
+\begin{enumerate}
+\item Accept if $\bar X_{ja}\geq 1$
+\item Probe if $\bar X_{jp}\geq 1$
+\item Reject if $\bar X_{ja}+\bar X_{jp}\leq Z_j(t)-1$
+\end{enumerate}
+At time $2t-1$, \off is satisfied accepting type $(j,k)$ in a probing stage if $\bar X_{jp}\geq 1$ and $\bar X_{(j,k)a}\geq 1$.
+\end{lemma}
+\begin{proof}
+\off is satisfied solving the following problem, where the actions correspond, respectively, to accept, probe and reject
+\[
+\max\crl{\bar r_j+\E_{\xi^{2t-2}}[\varphi(2t-2,b-e_h,Z,\xi^{2t-2})], \E_{\xi^{2t-2}}[\varphi(2t-1,b-e_p,Z,\xi^{2t-1})], \E_{\xi^{2t-2}}[\varphi(2t-2,b,Z,\xi^{2t-2})]}.
+\]
+For the accept and reject options the expectation is redundant, since all the necessary information to solve the problem is given in $Z$.
+This is not true for the probe option, since \off is unaware of $\xi^{2t-2}$.
+By Jensen's inequality, $\E_{\xi^{2t-2}}[\varphi(2t-1,b-e_p,Z,\xi^{2t-1})]\leq \varphi(2t-1,b-e_p,Z,\E[\xi^{2t-1}])$, where we are abusing notation to denote that in \cref{eq:probing_odd} we are replacing $\In{\xi^{2t-1}=(j,k)}$ by $q_{jk}$.
+It follows now that \off is also satisfied solving the problem 
+\[
+\max\crl{\bar r_j+\varphi(2t-2,b-e_h,Z,\xi^{2t-2}), \varphi(2t-1,b-e_p,Z,\E[\xi^{2t-1}])], \varphi(2t-2,b,Z,\xi^{2t-2})}.
+\]
+Finally, we can relate each of these options with the optimum of $\varphi(2t,b,Z,\xi^{2t})$ in the cases (1), (2) and (3).
+The argument at odd times $2t-1$ is similar. 
+\end{proof}
 
 
 \section{General Version}
 
-Consider a DP with state space $\St$ and a sequence of arrivals $\Jt\in\J$ for $t\in[\T]$, where $t$ is the \emph{time to-go}.
-We assume $\Jt$ evolves as a Markov chain on state space $\Jt$, with known transition matrix and initial distribution.
+Consider a DP with state space $\St$ and a sequence of inputs $\xit\in\Xi$ for $t\in[\T]$, where $t$ is the \emph{time to-go}.
+We assume $\xit$ evolves as a Markov chain on state space $\Xi$, with known transition matrix and initial distribution.
 
-For every state $s\in\St$, arrival $j\in \J$ and control $u\in\U$, we  collect a reward $\Re(s,j,u)$, which could be $-\infty$ and transition to the state $\Tr(s,j,u)$.
-Observe that the reward function is deterministic, but the input $j$ is random, thus making the reward itself at each time a random variable.
-Any time dependence will be embedded in the process $\Jt$, e.g., if the randomness represents unknown demand, the state of the Markov chain could be of the form $\J=\crl{(t,x):t\in[\T],x\in\Rp}$, where the first component gives us the time and the second the demand for the period.
+For every state $s\in\St$, arrival $\xi$ and control $u\in\U$, we  collect a reward $\Re(s,\xi,u)$, which could be $-\infty$, and transition to the state $\Tr(s,\xi,u)$.
+Observe that the reward function is deterministic, but the input $\xi$ is random, thus making the reward itself at each time a random variable.
+We stress that, at each time $t$, the decision-maker first observes $\xit$ and based on that makes a decision.
+\anote{
+The only difference is that in MCDP the reward depends on a pair of states (current and transition), but I think that would be redundant.
+}
+Any time dependence will be embedded in the process $\xit$, e.g., if the randomness represents unknown demand, the state of the Markov chain could be of the form $\J=\crl{(t,x):t\in[\T],x\in\Rp}$, where the first component gives us the time and the second the demand for the period.
+This formulation is known as a Markov Chance-Decision Process \cite[chap 13]{online_book}.
+
 
 Given this formulation, the value function at any given time can be expressed as
 \begin{equation}
-v(t,s) = \E_{\Jt,\ldots,J^1}\brk*{\max_{u^t,\ldots,u^1}\sum_{\tau=1}^t\Re(S^\tau,J^\tau,u^\tau) \text{ s.t. }  S^t=s \text{ and } S^{\tau-1}=\Tr(S^\tau,J^\tau,u^\tau) \forall \tau<t }.
+v(t,s) = \E_{\xit,\ldots,\xi^1}\brk*{\max_{u^t,\ldots,u^1}\sum_{\tau=1}^t\Re(S^\tau,\xi^\tau,u^\tau) \text{ s.t. }  S^t=s \text{ and } S^{\tau-1}=\Tr(S^\tau,\xi^\tau,u^\tau) \forall \tau<t }.
 \end{equation}
 
 Even if we reveal the entire input sequence, the problem inside of the expectation could be NP-Hard.
+This yields another motivation for online algorithms: by pretending the input arrives online, it gives a way of efficiently approximating a hard problem.
+
 We can define \off as the agent that knows the entire sequence, but this is too pessimistic and in general does not lead to sensible algorithms.
 Instead, we will define a hierarchy of such agents, each with more information.
 
@@ -108,38 +203,41 @@ S^t = A^{T-t}S^T + \sum_{\tau=t+1}^\T A^{\tau-1-t}Bu^\tau, \quad t\in[T].
 \]
 
 If $A$ is idempotent (a projection), then the formula simplifies greatly.
-\anote{	For now we will assume $A$ is the identity, but with any projection the results should be similar.}
+\anote{	For now we will assume $A$ is the identity, but the projection thing is important. The results shouldn't change.}
 In this case we have the simpler formula
 \begin{equation}\label{eq:linear_state}
 S^t = S^T + \sum_{\tau=t+1}^\T Bu^\tau, \quad t\in[T].
 \end{equation}
 
-For notation simplicity, we assume $0\in \R^\du$ is a valid action.
-
+For notation simplicity, we assume $0\in \R^\du$ is always a valid action.
+\anote{I'm not sure how restrictive this is.}
 
 \paragraph{Assumption: Subadditve Concave Rewards}
-The reward function $\Re(s,j,u)$ depends on $s,j$ only to specify feasible controls, i.e., combinations of arrivals and controls that give reward $-\infty$.
-Formally, define $\U(s,j)\defeq \crl{u\in\U: \Re(s,j,u)>-\infty}$.
-We assume that $\Re(s,j,u)$ is just a function of $u$ provided that $u\in\U(s,j)$.
+The reward function $\Re(s,\xi,u)$ depends on $s,\xi$ only to specify feasible controls, i.e., combinations of arrivals and controls that give reward $-\infty$.
+Formally, define $\U(s,\xi)\defeq \crl{u\in\U: \Re(s,\xi,u)>-\infty}$.
+We assume that $\Re(s,\xi,u)$ is just a function of $u$ provided that $u\in\U(s,\xi)$.
 
 Additionally, we assume that either (1) $\Re(u)$ is concave and subadditive or (2) there is a concave function $\tilde \Re:\U^\T\to\R$ such that $\sum_t\Re(u^t)\leq \tilde \Re(\sum_t u^t)$.
 
 The operator $B$ is also subadditive.
 
-\paragraph{Assumption: Finite Basis for the Controls}
+\anote{In principle $\Re$ is defined only for discrete points, so we actually require an extension that takes real numbers.}
+
+\paragraph{Assumption: Indexing for controls and states}
 The hope is that we can aggregate arrivals in a convenient way.
-For this aim, we need to reduce the information in $\J$.
-Assume there is a finite $\dI\in\N$ and an index function $I:\J\to[\dI]$.
-Intuitively, if $j,j'\in\J$ are such that $I(j)=I(j')$, then they are identical in terms of reward and feasibility constraints.
-We denote interchangeably $I_j=I(j)$.
+For this aim, we need to reduce the information in $\Xi$.
+We assume there is a mapping $J:\Xi\to[n]$.
+Intuitively, if $\xi,\xi'\in\J$ are such that $J(\xi)=J(\xi')$, then they are identical in terms of reward and feasibility constraints.
+As a shortcut, we use $\Jt\defeq J(\xit)$.
 
-We assume there are convex functions $f_i:\R^\ds\times\R^\du\to\R^\di$ and discrete sets $\U_i$ such that
+Similarly, there is a mapping $I:\St\to [m]$ and we denote $\It=I(S^t)$.
+We assume there is a convex function $f:\R^\ds\times\R^\du\to\R^d$, called \emph{feasibility function}, and discrete sets $\U_{ij}$ such that
 \[
-\U(s,j) = \crl{u\in \U_{I_j}: f_{I_j}(s,u)\leq 0}.
+\U(s,\xi) = \crl{u\in \U_{I(s),J(\xi)}: f(s,u)\geq 0}.
 \]
-We denote $k_i\defeq \abs{\U_i}$ the number of available controls for index $i$ and enumerate its elements as $\U_i = \crl{u_{k,i}: k\in [k_i]}$. 
 
-We define the processes $Z_i(t)=\sum_{\tau\leq t}\In{J^\tau=i}$.
+We denote $d_{ij}\defeq \abs{U_{ij}}$ the number of available controls and enumerate its elements as $\U_{ij} = \crl{u_{ijk}: k\in [d_{ij}]}$. 
+We define the processes $Z_j(t)\defeq\sum_{\tau\leq t}\In{J^\tau=j}=\sum_{\tau\leq t}\In{J(\xi^\tau)=j}$ and $Z_{ij}(t) \defeq \sum_{\tau\leq t}\In{J^\tau=j,I^\tau=i}$.
 
 \anote{For now I'm thinking of a discrete set of controls (e.g. accept, reject) and the results will depend on the number of controls.
 Nevertheless, I think there is an extension to, e.g., reject or sell $k$ units, with $k\in\N$.
@@ -148,36 +246,25 @@ It is important that the ``basis" has small dimension, rather than the controls 
 
 \paragraph{Assumption: Monotonicity}
 The state $S^t$ is monotone over time.
-Additionally, the functions $f_i(s,u)$ are also monotone in $s$.
+Additionally, the feasibility function $f(s,u)$ are also monotone in $s$.
 \anote{This is not fundamental in the following sense: the state can be monotone by intervals, e.g., the inventory descreases in $T,\ldots,T/2$, but at $T/2$ we can restock, then it decreases again in $T/2-1,\ldots,1$.
 }
 
-\begin{proposition}
-With the assumptions above, given $J^T,\ldots,J^1$, we can upper bound \off's problem by the following concave maximization problem
-\begin{equation}\label{eq:full_relaxation}
-\begin{array}{rrll}
-(P^\star)\quad \max  & \tilde \Re\prn*{\sum_{i\in [\dI]}\sum_{k\in [k_i]}x_{k,i}u_{k,i}} \\
-\text{s.t.}&  \sum_k x_{i,k} & \leq Z_i(T)  &\forall i\in [\dI] \\
-& f\prn*{S^\T+B\sum_{i,k}u_{i,k}y_{i,k},0}&\leq 0 & \forall i\in [\dI] \\
-& x_{i,k}&\geq 0 & \forall i\in [\dI], k\in [k_i] .
-\end{array}
-\end{equation}
-\end{proposition}
-
 Now we will separate the processes into \emph{revealed information} and its counterpart, the \emph{concealed information}.
 \off will have access to the revealed information, but only distributional information for the rest.
-We denote by $\Theta\subseteq [\dI]$ the set of indexes we reveal, meaning that \off knows $Z_i(\T)$ for $i\in\Theta$.
-Below we present the natural fluid relaxation of the concealed information.
+We denote by $\Theta\subseteq [n]$ the set of indexes we reveal, meaning that \off knows $Z_j(\T)$ for $j\in\Theta$.
+Below we present the natural fluid relaxation of the concealed information, which we call \emph{the canonical relaxation}.
+The first set of constraints, those involving $Z_{ij}$, are referred to as \emph{dynamics equations}.
+The constraints defined by $f$ are, naturally, called \emph{feasibility equations}.
 
-\begin{definition}[Fluid Relaxation For Concealed Information]
-If $\Theta$ are the revealed processes, and we denote $Z_\Theta(T)$ as a vector with the components $Z_i(T)$ for $i\in\Theta$, then the following is called the $\Theta$-fluid relaxation
+\begin{definition}[Canonical Relaxation]
+If $\Theta$ are the revealed processes, and we denote $Z_\Theta(T)$ as a vector with the components $j\in\Theta$, then the following is called the canonical relaxation given $\Theta$
 \begin{equation}\label{eq:theta_relaxation}
 \begin{array}{rrll}
-(P_\Theta)\quad \max  & \tilde \Re\prn*{\sum_{i\in [\dI]}\sum_{k\in [k_i]}x_{k,i}u_{k,i}} \\
-\text{s.t.}&  \sum_k x_{i,k} & \leq Z_i(T)  &\forall i\in \Theta \\
-&  \sum_k x_{i,k} & \leq \E[Z_i(T)| Z_\Theta(T), ]  &\forall i\notin \Theta \\
-& f\prn*{S^\T+B\sum_{i,k}u_{i,k}x_{i,k},0}&\leq 0 & \forall i\in [\dI] \\
-& x_{i,k}&\geq 0 & \forall i\in [\dI], k\in [k_i] .
+(P_\Theta)\quad \max  & \tilde \Re\prn*{\sum_{i\in [m]}\sum_{k\in [k_i]}x_{k,i}u_{k,i}} \\
+\text{s.t.}&  \sum_k x_{ijk} & \leq \E[Z_{ij}(T)| Z_\Theta(T) ]  &\forall i\in[m], j\in[n] \\
+& f\prn*{S^\T+B\sum_{i,j,k}u_{ijk}x_{ijk},0}&\geq 0  \\
+& x_{ijk}&\geq 0 & \forall i\in [m], j\in [n], k\in [d_{ij}] .
 \end{array}
 \end{equation}
 \end{definition}
