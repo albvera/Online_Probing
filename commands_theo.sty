@@ -10,6 +10,9 @@
 \newtheorem{conjecture}[theorem]{Conjecture}
 \renewcommand{\proofname}{{\sc Proof}}
 
+\usepackage{thmtools}
+\declaretheorem[style=plain,qed=$\vartriangleleft$,sibling=theorem,name=Example]{example}
+
 \makeatletter				%names of theorems in same font
 \def\th@plain{%
   \thm@notefont{}% same as heading font

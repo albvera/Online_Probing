@@ -69,7 +69,7 @@ Observe that $X_{jp}\leq Y_{j}^+$ and $\E[Y_j^+]=q_j\E[Y_j]$, thus $\E[X_{jp}]\l
 To summarize, $\voff(t,b_h,b_p)$ equals the value of the feasible solution given by the expectations, so $v(P^\star)$ can be only larger.
 \end{proof}
 
-\section{Probing II: Beyond Bernoulli and formulation as a MCDP}
+\section{Probing with Multiple Values and Formulation as a MCDP}
 
 \paragraph{Problem Statement}
 Same as before, but now a type $j$ is associated with values $r_{j1},r_{j2}>0$ and $q_{j1},q_{j2}\in[0,1]$ such that $q_{j1}+q_{j2}\leq 1$.
@@ -83,7 +83,7 @@ Formally, let $(\xit)$ be a Markov chain in the state space $[n]\cup\crl{(j,k):j
 The transition probabilities are given by $P_{j,(j,k)}=q_{jk}$, $P_{(j,k),j'}=p_{j'}$.
 For $\xi^{2t-1}=(j,k)$ we define $r(\xi^{2t-1})=r_{jk}$.
 
-The state space for our problem can be described as $\St=\crl{(b_h,b_p),(b_h,b_p,\diamond):b_h,b_p\in\N,\diamond\in \crl{\texttt{a,p,r}}}$, see \cref{fig:probing_states}.
+The state space for our problem can be described as $\S=\crl{(b_h,b_p),(b_h,b_p,\diamond):b_h,b_p\in\N,\diamond\in \crl{\texttt{a,p,r}}}$, see \cref{fig:probing_states}.
 The component $\diamond$ indicates if we are in the accept, probe or reject stage.
 There is never a $\diamond$ at times $2t$ and, at $2t-1$, feasible controls are different for distinct $\diamond$.
 
@@ -100,83 +100,162 @@ At $2t-1$, depending on $\diamond$, we can either accept or reject and $b_h$ may
 \label{fig:probing_states}
 \end{figure}
 
+\section{Relaxed Bellman Equations}
+
+Consider a DP with state space $\S$ and a sequence of inputs $\xit\in\Xi$ for $t\in[\T]$, where $t$ is the \emph{time to-go}.
+We assume $\xit$ evolves as a Markov chain on state space $\Xi$, with known transition matrix and initial distribution.
+
+For every state $s\in\S$, arrival $\xi$ and control $u\in\U$, we  collect a reward $\Re(s,\xi,u)$, which could be $-\infty$, and transition to the state $\Tr(s,\xi,u)$.
+Observe that the reward function is deterministic, but the input $\xi$ is random, thus making the reward itself at each time a random variable.
+We stress that, at each time $t$, the decision-maker first observes $\xit$ and based on that makes a decision.
+\anote{
+The only difference between this formulation and MCDP is that in MCDP the reward depends on a pair of states (current and transition), but I think that would be redundant.
+}
+Any time dependence will be embedded in the process $\xit$, e.g., if the randomness represents unknown demand, the state of the Markov chain could be of the form $\J=\crl{(t,x):t\in[\T],x\in\Rp}$, where the first component gives us the time and the second the demand for the period.
+This formulation is known as a Markov Chance-Decision Process \cite[chap 13]{online_book}.
+
+Given this formulation, if at time $t$ the current state is $s\in\S$, we obtain the Bellman \cref{eq:bellman_mcdp}
+\begin{equation}\label{eq:bellman_mcdp}
+v(t,s,\xit) = \max_{u\in\U}\crl{\Re(s,\xit,u) +\E_{\xi^{t-1}}[v(t-1,\Tr(s,\xit,u),\xi^{t-1})|\xit]},
+\end{equation}
+with boundary condition $v(0,\cdot,\cdot)=0$ and $\xi^0$ set to an arbitrary value.
+This is a well-known fact; contingent on the actions being optimal, the total to-go value can be decomposed as instant reward plus future value.
+We will now state a relaxed version of \cref{eq:bellman_mcdp}, where the main idea is to replace $v$, which is difficult to compute, for an efficiently computable upper bound $\tilde v$.
+If $\tilde v$ satisfies a probabilistic version of a Bellman Equation, then the process of iteratively solving the relaxed problem can be justified.
+
+\begin{definition}[Relaxed Bellman Equations]
+The function $\varphi:[T]\times\S\times\Xi\to \R$ satisfies the relaxed Bellman equations w.r.t.\ $v$ if:
+\begin{enumerate}
+\item Initial condition: $\E[v(\T,S^\T,\xi^\T)] \leq \E[\varphi(\T,S^\T,\xi^\T)]$
+\item Probabilistic inequality: $\forall s\in\S,t\in[T]$, there is a set $\calB(t,s)\subseteq\Omega$ such that
+\begin{equation}\label{eq:relaxed_bellman}
+\varphi(t,s,\xit) \leq \max_{u\in\U}\crl{R(s,\xit,u)+\E_{\xi^{t-1}}[\varphi(t-1,\Tr(s,\xit,u),\xi^{t-1})|\xit]} \quad \forall \omega\in\calB(t,s).
+\end{equation}
+\end{enumerate}
+\end{definition} 
+ 
+\begin{example}
+Consider a knapsack problem with two types of stochastic arrivals.
+Type $j$ has reward $r_j$, arrives at each period with probability $p_j$ and uses space $w_j$ in the knapsack.
+Assume all the arrivals are revealed.
+We will show that the following satisfies the relaxed Bellman equations:
+\[
+\varphi(t,b,\xit) = \max\crl*{\sum_{j}x_jr_j:\sum_{j}w_jx_j\leq b, \quad 0\leq x_j \leq Z_j(t) \quad \forall j\in[2]}.
+\]
+The initial condition is trivial, since we are relaxing the integrality constraints.
+We are left to show the probabilistic inequality.
+Let $X[\omega]$ be a solution to the LP and let $i=\xit$.
+For the remainder of the example, we will assume $X_i\in(0,1)$.
+If $Z_i(t)\geq 2$,  then an exchange argument shows
+\[
+\varphi(t,b,\xit) = \max_{u=\texttt{r,a}}\crl{r(b,\xit,u)+\varphi(t-1,b\ominus u,\xi^{t-1})}
+= \varphi(t-1,b,\xi^{t-1}),
+\]
+where $b\ominus u$ denotes the natural reduction of budget of an action.
+We conclude that, if $Z_i(t)\geq 2$ and $X_i<1$, the probabilistic inequality is satisfied a.s.
+We are left with the case $Z_i(t)=1$ (the case $Z_i(t)=0$ is impossible when $X_i\in (0,1)$).
+In this case, 
+\[
+\varphi(t,b,\xit) > \max_{u=\texttt{r,a}}\crl{r(b,\xit,u)+\varphi(t-1,b\ominus u,\xi^{t-1})}.
+\]
+We conclude that the probabilistic inequality is satisfied in $\calB(t,b)=\crl{\omega\in\Omega:Z_i(t)\geq 2}$.
+Observe that the probability of this set is exponentially close to one.
+Indeed, $\Pr[\calB(t,b)]=1-tp_i(1-p_i)^{t-1}$.
+\end{example}
+
+\begin{proposition}\label[proposition]{prop:relaxed_bellman}
+Assume $\varphi$ satisfies the relaxed Bellman equations w.r.t.\ $v$.
+Denote $\St$ the state of the policy that takes action $\Ut=\Ut(\xit,\St)$, where $\Ut$ is a maximizer in \cref{eq:relaxed_bellman}.
+Then,
+\[
+\E[v(\T,S^\T,\xi^\T)] \leq \E\brk*{ \sum_{t=1}^\T (\Re(\St,\xit,\Ut)+\rmax\Ins{B(t,\St)})}. 
+\]
+\end{proposition}
+\begin{proof}
+By the initial condition property, $\E[v(\T,S^\T,\xi^\T)] \leq \E[\varphi(\T,S^\T,\xi^\T)]$.
+It is now enough to argue the following equation and conclude by a simple induction step.
+\[
+\varphi(t,\St,\xit)\leq \E_{\xi^{t-1}}[\Re(\St,\xit,\Ut)+\varphi(t-1,S^{t-1},\xi^{t-1}) +  \rmax\Ins{B(t,\St)}|\xit].
+\]
+By definition of $\Ut$, $\varphi(t,\St,\xit)\leq \Re(\St,\xit,\Ut)+\E_{\xi^{t-1}}[\varphi(t-1,S^{t-1},\xi^{t-1})] +  \rmax\Ins{B(t,\St)}$.
+Since $\Re(\St,\xit,\Ut)$ and $\Ins{B(t,\St)}$ are measurable with respect to $\xit$, they can be inside the expectation, showing that the desired equation holds.
+\end{proof}
+
+\anote{The $\rmax$ term here corresponds to the loss in $\varphi$.
+All the relaxations we use have the same $\rmax$ as we would expect.}
+
+
+\section{Relaxation for Multiple Probing}
+
 The natural relaxation is similar to \cref{eq:probing_relaxation}, but it presents a new challenge.
 For binary cases, it was obvious that, if \off wants to probe an arrival, he will always accept it if it is active.
 In this case it could be that \off probes $j$ in hope of observing $r_{j2}$ and will reject $r_{j1}$.
 We must, therefore, reason about \off's actions at all times, instead of just at even times as before and concluding with structural properties.
 
 Let $\calX\defeq\Rp^{4n}$ be the space for the decision variables.
-Note that, by definition, $Z_j(2t-1)=Z_j(2t)-\In{\xi^{2t}=j}$.
-In \cref{eq:probing_even,eq:probing_odd} we present two similar functions, observe that they differ by the last two constraints only.
+In \cref{eq:probing_lp} we present a LP which will be the building block for our relaxation.
+Note that, by definition, if $t$ is odd, $Z_j(t)=Z_j(t+1)-\In{\xi^{t+1}=j}$.
 
-\begin{equation}\label{eq:probing_even}
+\begin{equation}\label{eq:probing_lp}
 \begin{array}{rrll}
-\varphi(2t,b,Z,\xi^{2t}) \; \max & \multicolumn{3}{l}{\sum_{j,k}r_{jk}(x_{(j,k)a}+q_{jk}x_{ja})} \\
-\text{s.t.}& \sum_j x_{jp} & \leq b_p \\
-& \sum_{j,k}x_{(j,k)a}+\sum_jx_{ja} &\leq b_h \\
+P[t,Z,b] \;= \max & \multicolumn{3}{l}{\sum_{j,k}r_{jk}(x_{(j,k)a}+q_{jk}x_{ja})} \\
+\text{s.t.}& \sum_{j,k}x_{(j,k)a}+\sum_jx_{ja} &\leq b_h  \\
+&  \sum_j x_{jp} & \leq b_p   \\
 &  x_{ja} +x_{jp} & \leq Z_j(t)  & j\in [n] \\
-& x_{(j,k)a} &\leq q_{jk}x_{jp} &  j \in [n],k\in [2].
-\end{array}
-\end{equation}
-\begin{equation}\label{eq:probing_odd}
-\begin{array}{rrll}
-\varphi(2t-1,b,Z,\xi^{2t-1}) \; \max & \multicolumn{3}{l}{\sum_{j,k}r_{jk}(x_{(j,k)a}+q_{jk}x_{ja})} \\
-\text{s.t.}& \sum_j x_{jp} & \leq b_p \\
-& \sum_{j,k}x_{(j,k)a}+\sum_jx_{ja} &\leq b_h \\
-&  x_{ja} + x_{jp} & \leq Z_j(t)-\In{\xi^{2t}=j}  & j\in [n] \\
-& x_{(j,k)a} &\leq q_{jk}x_{jp} + \In{\xi^{2t-1}=(j,k)}&  j \in [n],k\in [2].
+& x_{(j,k)a} &\leq q_{jk}x_{jp} &  j \in [n],k\in [2]\\ 
+& x&\in\calX.
 \end{array}
 \end{equation}
 
-An argument as in \cref{prop:probing_relaxation} shows that $\voff(t,b)\leq \varphi(t,b,Z,\xit)$.
-We can pretend, thus, that \off agrees to receive rewards according to $\varphi$.
-To make this precise, we need a map between two worlds, since \onl decides on actions \texttt{a,p,r} and \off on points in $\calX$.
+The LP in \cref{eq:probing_lp} can be interpreted as follows...\todonote
+
+We are ready to parse the relaxation in \cref{eq:probing_relax}.
+Recall that a state is of the form $s=(b_h,b_p,\diamond)$ with $\diamond\in \crl{\texttt{a},\texttt{p},\texttt{r},\varnothing}$, where $\diamond=\varnothing$ for even times.
+\begin{equation}\label{eq:probing_relax}
+\varphi(t,s,\xit) = \left\{ 
+\begin{array}{ll}
+v(P[t,Z,b]) & \diamond=\varnothing \\ 
+v(P[t-1,Z,b]) & \diamond = \texttt{r} \\ 
+r_{\xit}+v(P[t-1,Z,b]) & \diamond = \texttt{a} \\ 
+\max\crl{r_{\xit}+v(P[t-1,Z,b-e_h]),v(P[t-1,Z,b])} & \diamond = \texttt{p}
+\end{array} 
+\right.
+\end{equation}
 
 \begin{lemma}
-Let $\bar X\in\calX$ be a maximizer of $\varphi(2t,b,Z,\xi^{2t})$.
-Say $\xi^{2t}=j$, then, at time $2t$, \off is satisfied with the following actions:
+Let $\bar X\in\calX$ be a maximizer of $(P[t,Z,b])$ for $t$ even.
+Say $\xit=j$, then, at time $t$, \off is satisfied with the following actions:
 \begin{enumerate}
 \item Accept if $\bar X_{ja}\geq 1$
-\item Probe if $\bar X_{jp}\geq 1$
 \item Reject if $\bar X_{ja}+\bar X_{jp}\leq Z_j(t)-1$
+\item Probe if $\bar X_{jp}\geq 1$ and then accept $(j,k)$ if $\bar X_{(j,k)a}\geq 1$
 \end{enumerate}
-At time $2t-1$, \off is satisfied accepting type $(j,k)$ in a probing stage if $\bar X_{jp}\geq 1$ and $\bar X_{(j,k)a}\geq 1$.
 \end{lemma}
 \begin{proof}
-\off is satisfied solving the following problem, where the actions correspond, respectively, to accept, probe and reject
+We will show that $\varphi$ satisfies the relaxed Bellman equations, then conclude in virtue of \cref{prop:relaxed_bellman}.
+The initial condition follows from the same argument as in \cref{prop:probing_relaxation}.
+We are left to show the the probabilistic inequality
 \[
-\max\crl{\bar r_j+\E_{\xi^{2t-2}}[\varphi(2t-2,b-e_h,Z,\xi^{2t-2})], \E_{\xi^{2t-2}}[\varphi(2t-1,b-e_p,Z,\xi^{2t-1})], \E_{\xi^{2t-2}}[\varphi(2t-2,b,Z,\xi^{2t-2})]}.
+\varphi(t,s,\xit) \leq \max_{u\in\U}\crl{R(s,\xit,u)+\E_{\xi^{t-1}}[\varphi(t-1,\Tr(s,\xit,u),\xi^{t-1})|\xit]} \quad \forall \omega\in\calB(t,s).
 \]
-For the accept and reject options the expectation is redundant, since all the necessary information to solve the problem is given in $Z$.
-This is not true for the probe option, since \off is unaware of $\xi^{2t-2}$.
-By Jensen's inequality, $\E_{\xi^{2t-2}}[\varphi(2t-1,b-e_p,Z,\xi^{2t-1})]\leq \varphi(2t-1,b-e_p,Z,\E[\xi^{2t-1}])$, where we are abusing notation to denote that in \cref{eq:probing_odd} we are replacing $\In{\xi^{2t-1}=(j,k)}$ by $q_{jk}$.
-It follows now that \off is also satisfied solving the problem 
-\[
-\max\crl{\bar r_j+\varphi(2t-2,b-e_h,Z,\xi^{2t-2}), \varphi(2t-1,b-e_p,Z,\E[\xi^{2t-1}])], \varphi(2t-2,b,Z,\xi^{2t-2})}.
-\]
-Finally, we can relate each of these options with the optimum of $\varphi(2t,b,Z,\xi^{2t})$ in the cases (1), (2) and (3).
-The argument at odd times $2t-1$ is similar. 
+The set $\calB(t,s)$ is defined as the $\omega\in\Omega$ such that at least one of the conditions (1),(2) or (3) are satisfied.
+Observe that, since $t$ is even, the instant reward $R(s,\xit,u)$ is zero.
+In cases (1) and (2) is easy to verify the probabilistic inequality.
+For case (3) we apply Jensen's Inequality:
+\begin{align*}
+\varphi(t,s,\xit) &= v(P[t,Z,b]) \\
+&= \max\crl{\E[r_{\xi^{t-1}}|\xit]+v(P[t-1,Z,b-e_p-e_h]),v(P[t-1,Z,b-e_p])} \\
+&\leq \E_{\xi^{t-1}}[\max\crl{r_{\xit}+v(P[t-1,Z,b-e_h-e_p]),v(P[t-1,Z,b-e_p])}].
+\end{align*}
+The last term equals $R(s,\xit,u)+\E_{\xi^{t-1}}[\varphi(t-1,s\ominus\texttt{p},\xi^{t-1})|\xit]$ and the proof is complete.
 \end{proof}
 
 
 \section{General Version}
 
-Consider a DP with state space $\St$ and a sequence of inputs $\xit\in\Xi$ for $t\in[\T]$, where $t$ is the \emph{time to-go}.
-We assume $\xit$ evolves as a Markov chain on state space $\Xi$, with known transition matrix and initial distribution.
-
-For every state $s\in\St$, arrival $\xi$ and control $u\in\U$, we  collect a reward $\Re(s,\xi,u)$, which could be $-\infty$, and transition to the state $\Tr(s,\xi,u)$.
-Observe that the reward function is deterministic, but the input $\xi$ is random, thus making the reward itself at each time a random variable.
-We stress that, at each time $t$, the decision-maker first observes $\xit$ and based on that makes a decision.
-\anote{
-The only difference is that in MCDP the reward depends on a pair of states (current and transition), but I think that would be redundant.
-}
-Any time dependence will be embedded in the process $\xit$, e.g., if the randomness represents unknown demand, the state of the Markov chain could be of the form $\J=\crl{(t,x):t\in[\T],x\in\Rp}$, where the first component gives us the time and the second the demand for the period.
-This formulation is known as a Markov Chance-Decision Process \cite[chap 13]{online_book}.
-
-
-Given this formulation, the value function at any given time can be expressed as
+Iterating the Bellman \cref{eq:bellman_mcdp}, we arrive at the equivalent expression 
 \begin{equation}
-v(t,s) = \E_{\xit,\ldots,\xi^1}\brk*{\max_{u^t,\ldots,u^1}\sum_{\tau=1}^t\Re(S^\tau,\xi^\tau,u^\tau) \text{ s.t. }  S^t=s \text{ and } S^{\tau-1}=\Tr(S^\tau,\xi^\tau,u^\tau) \forall \tau<t }.
+v(t,s,\xit) = \E_{\xi^{t-1},\ldots,\xi^1}\brk*{\max_{u^t,\ldots,u^1}\sum_{\tau=1}^t\Re(S^\tau,\xi^\tau,u^\tau) \text{ s.t. }  S^t=s \text{ and } S^{\tau-1}=\Tr(S^\tau,\xi^\tau,u^\tau) \forall \tau<t }.
 \end{equation}
 
 Even if we reveal the entire input sequence, the problem inside of the expectation could be NP-Hard.
@@ -189,7 +268,7 @@ We now start imposing assumptions to guarantee two things: (1) we can find a \em
 The first point will be achieved by obtaining a concave maximization program with convex constraints, while the second requires \emph{revealing some, but not all, information} to \off.
 
 \paragraph{Assumption: Finite Dimension}
-We identify $\St\subseteq \R^\ds$ and $\U\subseteq\R^\du$.
+We identify $\S\subseteq \R^\ds$ and $\U\subseteq\R^\du$.
 
 \paragraph{Assumption: Linear Transitions}
 There are operators $A,B$ such that, given a control $u^{t+1}$ at state $S^{t+1}$, the system transitions as follows
@@ -230,7 +309,7 @@ We assume there is a mapping $J:\Xi\to[n]$.
 Intuitively, if $\xi,\xi'\in\J$ are such that $J(\xi)=J(\xi')$, then they are identical in terms of reward and feasibility constraints.
 As a shortcut, we use $\Jt\defeq J(\xit)$.
 
-Similarly, there is a mapping $I:\St\to [m]$ and we denote $\It=I(S^t)$.
+Similarly, there is a mapping $I:\S\to [m]$ and we denote $\It=I(S^t)$.
 We assume there is a convex function $f:\R^\ds\times\R^\du\to\R^d$, called \emph{feasibility function}, and discrete sets $\U_{ij}$ such that
 \[
 \U(s,\xi) = \crl{u\in \U_{I(s),J(\xi)}: f(s,u)\geq 0}.

@@ -47,7 +47,7 @@
 \newcommand{\rl}{\bar r}								%marginal compensation
 \newcommand{\Rl}{\bar R}                                %marginal comp as a r.v.
 \newcommand{\U}{\mathcal{U}}							%control space
-\newcommand{\St}{\mathcal{S}}							%state space
+\renewcommand{\S}{\mathcal{S}}							%state space
 \newcommand{\J}{\mathcal{J}}                            %arrival space
 \newcommand{\Tr}{\mathcal{T}}							%transition function
 \renewcommand{\Re}{\mathcal{R}}                         %reward function
@@ -57,12 +57,16 @@
 \newcommand{\xit}{\xi^t}
 \newcommand{\calX}{\mathcal{X}}
 \newcommand{\It}{I^t}
+\newcommand{\Ut}{U^t}
+\newcommand{\St}{S^t}
+\newcommand{\calB}{\mathcal{B}}							%where the Bellman equations are satisfied
+\DeclareMathOperator*{\argmax}{argmax}
 
 %to leave notes
 \usepackage{todonotes}				%pass option disable to remove	    
 \newcommand{\anote}[1]{\todo[author=Alberto,inline,color=blue!10]{#1}}
 \newcommand{\snote}[1]{\todo[author=Sid,inline,color=magenta!10]{#1}}
-\newcommand{\todonote}[1]{\todo[author=To Do,inline,color=orange!15]{#1}}
+\newcommand{\todonote}{\todo[,color=orange!15]{TO DO}}
 
 %algorithm configuration
 \usepackage{algorithm}
