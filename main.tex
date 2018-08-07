@@ -1,0 +1,74 @@
+\documentclass[format=sigconf, screen=true]{acmart}
+
+%-------------- Customization of acmsmall package begins ----------------
+\settopmatter{printacmref=false}%removes citation information below abstract
+\renewcommand\footnotetextcopyrightpermission[1]{} 	% removes footnote with conference information in first column
+\fancyfoot[LE,RO]{}									%removes footer with publication date
+\fancypagestyle{firstpagestyle}{\fancyhf{}}			%removes footer with publication date on first page
+\fancyhead[LE,RO]{\thepage}		%removes article number from header and leaves only page number
+\makeatletter					%removes the black rectangle with article number
+\renewcommand\@folioblob{}
+\makeatother
+%-------------- Customization of acmsmall package ends ----------------
+
+\usepackage{thmtools}
+\declaretheorem[style=acmdefinition,qed=$\vartriangleleft$,sibling=theorem,name=Example]{myexample}
+\declaretheorem[style=acmplain,sibling=theorem]{remark}
+
+%Import personal commands 
+\usepackage{commandsrm}
+%Load cleveref last
+\usepackage[capitalize]{cleveref}
+
+\usepackage{epigraph}
+\setlength\epigraphwidth{8cm}
+\setlength\epigraphrule{0pt}
+
+
+
+% DOI
+%\acmDOI{0000001.0000001}
+
+\begin{document}
+\title{Clever Title} 
+
+\author{Alessandro Arlotto} 
+\affiliation{Duke University}
+\author{Siddhartha Banerjee}
+\affiliation{Cornell University}
+\author{Itai Gurvich}
+\affiliation{Cornell University}
+\author{Alberto Vera}
+\affiliation{Cornell University}
+
+
+
+\keywords{Online Stochastic Optimization, Prophet Inequalities, Approximate Dynamic Programming, Network Revenue Management, Online Packing.}
+\begin{abstract}
+\input{sec_abstract.tex}
+\end{abstract}
+
+\maketitle
+
+\section{Introduction}
+
+\input{sec_intro.tex}
+
+\section{Relaxed Bellman Equations}
+\input{sec_bellman.tex}
+
+\section{Probing}
+\input{sec_probing.tex}
+
+\section{Stochastic Knapsack With Frequentist Learning}
+\input{sec_knapsack.tex}
+
+\section{Conclusions}
+\input{sec_conclu.tex}
+
+
+%% Bibliography
+\bibliographystyle{plain}
+\bibliography{biblio}
+
+\end{document}

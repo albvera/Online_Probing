@@ -46,7 +46,7 @@
 \newcommand{\poff}{\pi^{\text{off}}}	
 \newcommand{\rl}{\bar r}								%marginal compensation
 \newcommand{\Rl}{\bar R}                                %marginal comp as a r.v.
-\newcommand{\U}{\mathcal{U}}							%control space
+\renewcommand{\U}{\mathcal{U}}							%control space
 \renewcommand{\S}{\mathcal{S}}							%state space
 \newcommand{\J}{\mathcal{J}}                            %arrival space
 \newcommand{\Tr}{\mathcal{T}}							%transition function
@@ -61,12 +61,16 @@
 \newcommand{\St}{S^t}
 \newcommand{\calB}{\mathcal{B}}							%where the Bellman equations are satisfied
 \DeclareMathOperator*{\argmax}{argmax}
+\newcommand{\calF}{\mathcal{F}}
+\newcommand{\Wt}{\hat W^t}
+\newcommand{\sigmat}{\hat\sigma^t}
+
 
 %to leave notes
 \usepackage{todonotes}				%pass option disable to remove	    
 \newcommand{\anote}[1]{\todo[author=Alberto,inline,color=blue!10]{#1}}
 \newcommand{\snote}[1]{\todo[author=Sid,inline,color=magenta!10]{#1}}
-\newcommand{\todonote}{\todo[,color=orange!15]{TO DO}}
+\newcommand{\todonote}{\todo[,color=orange!15]{TODO}}
 
 %algorithm configuration
 \usepackage{algorithm}

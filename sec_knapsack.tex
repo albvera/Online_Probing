@@ -1,0 +1,66 @@
+\paragraph{Problem Statement}
+Items with known reward $r$ and random weight $W$ can be placed in a knapsack of capacity $B$.
+At every time $t$, an arrival $j\in[n]$ is drawn with some known distribution, which generates a known reward of $r_j$.
+The weight $W_j$ is a random variable, which is revealed only after the decision of accept/reject has been made.
+The support of $W_j$ is known, but not the distribution.
+An arrival can be accepted only if the weight is a.s.\ smaller than the remaining capacity.
+At the end of each period, we observe the realization of both accepted and rejected items.
+
+\off has access to the distribution of weights, \emph{but not to the realizations}.
+Let $w_j\defeq \E[W_j]$ and $\Wt_j$ be the empirical average of the weights observed.
+We assume that, before the process starts, we are given one sample of each weight type to initialize $\hat W_{jt}$.
+
+Let $N_j(t)$ be the number of samples type $j$ observed at the beginning of $t$.
+By definition we have $N_j(t)=Z_j(\T)-Z_j(t)+1$.
+Following the same arguments, we can show that the relaxation in \cref{eq:knapsack_lp2} satisfies the initial condition.
+\begin{equation}\label{eq:knapsack_lp2}
+\begin{array}{rrll}
+\varphi(t,b,\xit) \; = \; \max & \multicolumn{3}{l}{\sum_{j}r_{j}x_j} \\
+\text{s.t.}& \sum_{j} w_jx_j  &\leq b  \\
+&  x_j & \leq Z_j(t)  & j\in [n] \\
+& x&\geq 0.
+\end{array}
+\end{equation}
+
+Define as $\hat \varphi(t,b)$ the LP obtained from \cref{eq:knapsack_lp2} by replacing $Z_j(t)$ and $w_j$ by $\mu_j(t)\defeq\E[Z_j(t)]$ and $\Wt_j$, respectively.
+Let $\sigma_j\in[n]$ be the rank of $j$ w.r.t.\ the ratio $r_j/w_j$, breaking ties lexicographically. 
+For example, if $\sigma_j=1$, it means that $j$ is the most desirable item.
+Similarly, $\sigmat_j$ denotes the rank of $j$ w.r.t.\ the ratio $r_j/\Wt_j$.
+
+\begin{lemma}
+Assume there are two items ($n=2$)  and $\abs{w_1-w_2}=\Delta>0$.
+Let $\Xts,\Xt$ be the solutions to $\varphi,\hat\varphi$ respectively, then
+\[
+\Pr[\Xt_j\geq \mu_j(t)/2, \Xts<1] \leq STUFF, \quad 
+\Pr[\Xt_j< \mu_j(t)/2, \Xts>Z_j(t)-1]\leq STUFF
+\]
+\end{lemma}
+\begin{proof}
+Let us bound the first probability by partitioning the space as
+\[
+\Pr[\Xt_j\geq \mu_j(t)/2, \Xts<1] \leq \Pr[\Xt_j\geq \mu_j(t)/2, \Xts<1, \sigma_j=\sigmat_j] + \Pr[\sigma_j\neq\sigmat_j].
+\]
+The term $\Pr[\sigma_j\neq\sigmat_j]$ decays with the number of samples $N_1(t),N_2(t)$.
+We now bound the other term.
+
+Say $j=1$ and let us study the case $\sigma_1=1$ first.
+We can write $\Xts_1 = Z_1(t)\land \frac{b}{w_1}$ and $\Xt_1 = \mu_1(t)\land \frac{b}{\Wt_1}$.
+Since we are assuming $\Xt_1\geq \mu_1(t)/2$, it follows that $\frac{b}{\Wt_1}\geq \mu_1(t)/2$.
+On the other hand, $\Xts_1<1$ necessitates $\frac{b}{w_1}<1$ or $Z_1(t)=0$.
+We can use these two inequalities to conclude
+\[
+\Pr[\Xt_j\geq \mu_j(t)/2, \Xts<1, \sigma_j=\sigmat_j=1] \leq \Pr[ w_1> \Wt_1 \mu_1(t)/2 \text{ or }  Z_1(t)=0].
+\]
+The probability of both events decay with $\mu_1(t)$.
+
+Finally, let us study the case $\sigma_1=2$.
+We can write $\Xts_2 = Z_2(t)\land \frac{b}{w_2}$, $\Xt_2 = \mu_2(t)\land \frac{b}{\Wt_2}$, $\Xts_1 = Z_1(t)\land \frac{b-\Xts_2w_2}{w_1}$ and $\Xt_1 = \mu_1(t)\land \frac{b-\Xt_2\Wt_2}{\Wt_1}$.
+The conditions $\Xt_1\geq \mu_1(t)/2$ and $\Xts_1<1$ imply
+\begin{align*}
+& \Wt_1\frac{\mu_1(t)}{2}+\Xt_2\Wt_2\leq b < w_1+\Xts_2w_2 \quad \text{ or } \quad Z_1(t)=0\\
+&\Longrightarrow \Wt_1\frac{\mu_1(t)}{2}< w_1+ (Z_2(t)w_2)\land b - (\mu_2(t)\Wt_2)\land b \quad \text{ or } \quad Z_1(t)=0 \\
+&\Longrightarrow \Wt_1\frac{\mu_1(t)}{2}< w_1+ \abs{Z_2(t)w_2 -\mu_2(t)\Wt_2} \quad \text{ or } \quad Z_1(t)=0.
+\end{align*}
+For the last implication we used the fact that $x\land b - y\land b \leq \abs{x-y}$ holds for any reals $x,y,b$.
+We conclude by observing that both events have probability decaying with $\mu_1(t),N_1(t),N_2(t)$.
+\end{proof}

@@ -1,0 +1,83 @@
+\section{Relaxed Bellman Equations}
+
+Consider a DP with state space $\S$ and a sequence of inputs $\xit\in\Xi$ for $t\in[\T]$, where $t$ is the \emph{time to-go}.
+We assume $\xit$ evolves as a Markov chain on state space $\Xi$, with known transition matrix and initial distribution.
+
+For every state $s\in\S$, arrival $\xi$ and control $u\in\U$, we  collect a reward $\Re(s,\xi,u)$, which could be $-\infty$, and transition to the state $\Tr(s,\xi,u)$.
+Observe that the reward function is deterministic, but the input $\xi$ is random, thus making the reward itself at each time a random variable.
+We stress that, at each time $t$, the decision-maker first observes $\xit$ and based on that makes a decision.
+\anote{
+The only difference between this formulation and MCDP is that in MCDP the reward depends on a pair of states (current and transition), but I think that would be redundant.
+}
+Any time dependence will be embedded in the process $\xit$, e.g., if the randomness represents unknown demand, the state of the Markov chain could be of the form $\J=\crl{(t,x):t\in[\T],x\in\Rp}$, where the first component gives us the time and the second the demand for the period.
+This formulation is known as a Markov Chance-Decision Process \cite[chap 13]{online_book}.
+
+Given this formulation, if at time $t$ the current state is $s\in\S$, we obtain the Bellman \cref{eq:bellman_mcdp}
+\begin{equation}\label{eq:bellman_mcdp}
+v(t,s,\xit) = \max_{u\in\U}\crl{\Re(s,\xit,u) +\E_{\xi^{t-1}}[v(t-1,\Tr(s,\xit,u),\xi^{t-1})|\xit]},
+\end{equation}
+with boundary condition $v(0,\cdot,\cdot)=0$ and $\xi^0$ set to an arbitrary value.
+This is a well-known fact; contingent on the actions being optimal, the total to-go value can be decomposed as instant reward plus future value.
+We will now state a relaxed version of \cref{eq:bellman_mcdp}, where the main idea is to replace $v$, which is difficult to compute, for an efficiently computable upper bound $\tilde v$.
+If $\tilde v$ satisfies a probabilistic version of a Bellman Equation, then the process of iteratively solving the relaxed problem can be justified.
+
+\begin{definition}[Relaxed Bellman Equations]
+The function $\varphi:[T]\times\S\times\Xi\to \R$ satisfies the relaxed Bellman equations w.r.t.\ $v$ if:
+\begin{enumerate}
+\item Initial condition: $\E[v(\T,S^\T,\xi^\T)] \leq \E[\varphi(\T,S^\T,\xi^\T)]$
+\item Probabilistic inequality: $\forall s\in\S,t\in[T]$, there is a set $\calB(t,s)\subseteq\Omega$ such that
+\begin{equation}\label{eq:relaxed_bellman}
+\varphi(t,s,\xit) \leq \max_{u\in\U}\crl{R(s,\xit,u)+\E_{\xi^{t-1}}[\varphi(t-1,\Tr(s,\xit,u),\xi^{t-1})|\xit]} \quad \forall \omega\in\calB(t,s).
+\end{equation}
+\end{enumerate}
+\end{definition} 
+ 
+\begin{example}
+Consider a knapsack problem with two types of stochastic arrivals.
+Type $j$ has reward $r_j$, arrives at each period with probability $p_j$ and uses space $w_j$ in the knapsack.
+Assume all the arrivals are revealed.
+We will show that the following satisfies the relaxed Bellman equations:
+\[
+\varphi(t,b,\xit) = \max\crl*{\sum_{j}x_jr_j:\sum_{j}w_jx_j\leq b, \quad 0\leq x_j \leq Z_j(t) \quad \forall j\in[2]}.
+\]
+The initial condition is trivial, since we are relaxing the integrality constraints.
+We are left to show the probabilistic inequality.
+Let $X[\omega]$ be a solution to the LP and let $i=\xit$.
+For the remainder of the example, we will assume $X_i\in(0,1)$.
+If $Z_i(t)\geq 2$,  then an exchange argument shows
+\[
+\varphi(t,b,\xit) = \max_{u=\texttt{r,a}}\crl{r(b,\xit,u)+\varphi(t-1,b\ominus u,\xi^{t-1})}
+= \varphi(t-1,b,\xi^{t-1}),
+\]
+where $b\ominus u$ denotes the natural reduction of budget of an action.
+We conclude that, if $Z_i(t)\geq 2$ and $X_i<1$, the probabilistic inequality is satisfied a.s.
+We are left with the case $Z_i(t)=1$ (the case $Z_i(t)=0$ is impossible when $X_i\in (0,1)$).
+In this case, 
+\[
+\varphi(t,b,\xit) > \max_{u=\texttt{r,a}}\crl{r(b,\xit,u)+\varphi(t-1,b\ominus u,\xi^{t-1})}.
+\]
+We conclude that the probabilistic inequality is satisfied in $\calB(t,b)=\crl{\omega\in\Omega:Z_i(t)\geq 2}$.
+Observe that the probability of this set is exponentially close to one.
+Indeed, $\Pr[\calB(t,b)]=1-tp_i(1-p_i)^{t-1}$.
+\end{example}
+
+\begin{proposition}\label[proposition]{prop:relaxed_bellman}
+Assume $\varphi$ satisfies the relaxed Bellman equations w.r.t.\ $v$.
+Denote $\St$ the state of the policy that takes action $\Ut=\Ut(\xit,\St)$, where $\Ut$ is a maximizer in \cref{eq:relaxed_bellman}.
+Then,
+\[
+\E[v(\T,S^\T,\xi^\T)] \leq \E\brk*{ \sum_{t=1}^\T (\Re(\St,\xit,\Ut)+\rmax\Ins{B(t,\St)})}. 
+\]
+\end{proposition}
+\begin{proof}
+By the initial condition property, $\E[v(\T,S^\T,\xi^\T)] \leq \E[\varphi(\T,S^\T,\xi^\T)]$.
+It is now enough to argue the following equation and conclude by a simple induction step.
+\[
+\varphi(t,\St,\xit)\leq \E_{\xi^{t-1}}[\Re(\St,\xit,\Ut)+\varphi(t-1,S^{t-1},\xi^{t-1}) +  \rmax\Ins{B(t,\St)}|\xit].
+\]
+By definition of $\Ut$, $\varphi(t,\St,\xit)\leq \Re(\St,\xit,\Ut)+\E_{\xi^{t-1}}[\varphi(t-1,S^{t-1},\xi^{t-1})] +  \rmax\Ins{B(t,\St)}$.
+Since $\Re(\St,\xit,\Ut)$ and $\Ins{B(t,\St)}$ are measurable with respect to $\xit$, they can be inside the expectation, showing that the desired equation holds.
+\end{proof}
+
+\anote{The $\rmax$ term here corresponds to the loss in $\varphi$.
+All the relaxations we use have the same $\rmax$ as we would expect.}
