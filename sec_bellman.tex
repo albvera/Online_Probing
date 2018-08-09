@@ -1,5 +1,3 @@
-\section{Relaxed Bellman Equations}
-
 Consider a DP with state space $\S$ and a sequence of inputs $\xit\in\Xi$ for $t\in[\T]$, where $t$ is the \emph{time to-go}.
 We assume $\xit$ evolves as a Markov chain on state space $\Xi$, with known transition matrix and initial distribution.
 
@@ -21,7 +19,7 @@ This is a well-known fact; contingent on the actions being optimal, the total to
 We will now state a relaxed version of \cref{eq:bellman_mcdp}, where the main idea is to replace $v$, which is difficult to compute, for an efficiently computable upper bound $\tilde v$.
 If $\tilde v$ satisfies a probabilistic version of a Bellman Equation, then the process of iteratively solving the relaxed problem can be justified.
 
-\begin{definition}[Relaxed Bellman Equations]
+\begin{definition}[Relaxed Bellman Equations]\label[definition]{def:relaxed_bellman}
 The function $\varphi:[T]\times\S\times\Xi\to \R$ satisfies the relaxed Bellman equations w.r.t.\ $v$ if:
 \begin{enumerate}
 \item Initial condition: $\E[v(\T,S^\T,\xi^\T)] \leq \E[\varphi(\T,S^\T,\xi^\T)]$

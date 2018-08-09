@@ -38,36 +38,7 @@ We define \off to be the agent who knows the arrival process $Z(t)$, but does no
 The value function $\voff(t,b_h,b_p)$ is determined by the natural Bellman Equations.
 We start by providing an upper bound to the value function, defined by the following decision variables representing total numbers, not binary values: $y_j$ is the number of type $j$ we probed, $x_{ja}$ is the number of type $j$ accepted without probing and $x_{jp}$ is the number of type $j$ accepted after probing.
 
-\begin{proposition}\label[proposition]{prop:probing_relaxation}
-For any $b_h,b_p\in\N$, $t\in[\T]$ and realization $Z$ of arrivals, $\voff(t,b_h,b_p)$ is upper bounded by
-\begin{equation}\label{eq:probing_relaxation}
-\begin{array}{rrll}
-(P^\star)\quad \max  & \sum_jr_j(x_{jp}+q_jx_{ja}) \\
-\text{s.t.}& \sum_j y_j & \leq b_p \\
-& \sum_j(x_{jp}+x_{ja}) &\leq b_h \\
-&  x_{ja} + y_j & \leq Z_j(t)  &\forall j\in [n] \\
-& x_{jp} &\leq q_jy_j & \forall j \in [n] \\
-& y_j,x_{j,a},x_{j,p}&\geq 0 & \forall j\in[n].
-\end{array}
-\end{equation}
-\end{proposition}	
-\begin{proof}
-Consider any policy for \off which determines when to probe, accept or reject.
-The policy induces a random trajectory, which is determined by the realization of the Bernoulli variables, not the arrivals, since the later are given.
-Define the following random variables, counting the number of times in which a type $j$: was probed, denoted $Y_j$; was accepted without probing, $X_{ja}$; and was accepted after probing, $X_{jp}$.
-Finally, let $Y_{j}^+,X_{ja}^+$ be the number of active from among those probed or accepted, respectively.
-We assume w.l.o.g.\ that, among the probed elements, \off takes only active ones.
 
-Our aim is to argue that, replacing the aforementioned r.v.\ with their expectations, yields a feasible solution to $(P^\star)$.
-It holds $\voff(t,b_h,b_p) = \E[\sum_j r_j(X_{jp}+X_{ja}^+)]$ and $\E[X_{ja}^+|X_{ja}]=q_jX_{ja}$, thus
-\[
-\voff(t,b_h,b_p) = \sum_jr_j(\E[X_{jp}]+q_j\E[X_{ja}]).
-\] 
-
-With the exception of the constraint $x_{jp}\leq q_jy_j$, $X_{ja},Y_j,X_{jp}$ satisfy a.s.\ all the constraints of $(P^\star)$, hence their expectations do too.
-Observe that $X_{jp}\leq Y_{j}^+$ and $\E[Y_j^+]=q_j\E[Y_j]$, thus $\E[X_{jp}]\leq q_j\E[Y_j]$.
-To summarize, $\voff(t,b_h,b_p)$ equals the value of the feasible solution given by the expectations, so $v(P^\star)$ can be only larger.
-\end{proof}
 
 
 

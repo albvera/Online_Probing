@@ -10,8 +10,7 @@
 \newcommand{\E}{\mathbb{E}}								%expectation
 \renewcommand{\Pr}{\mathbb{P}}							%prob
 \newcommand{\In}[1]{\mathds{1}_{\crl*{ #1}}} 			%indicator
-\newcommand{\Ins}[1]{\mathds{1}_{#1}} 			%indicator of set
-\newcommand{\calN}{\mathcal{N}}
+\newcommand{\Ins}[1]{\mathds{1}_{#1}} 					%indicator of set
 \newcommand{\defeq}{\coloneqq}							%symbol :=
 
 %parenthesis
@@ -40,6 +39,7 @@
 \DeclareMathOperator{\Uni}{Uniform}
 \DeclareMathOperator{\Ber}{Bernoulli}
 \DeclareMathOperator{\argmin}{argmin}
+\DeclareMathOperator{\argmax}{argmax}
 \newcommand{\Xt}{X^t}									%fluid solution
 \newcommand{\Xts}{X^{\star t}}							%offline solution
 \newcommand{\pon}{\pi^{\text{on}}}						%online policy
@@ -60,17 +60,24 @@
 \newcommand{\Ut}{U^t}
 \newcommand{\St}{S^t}
 \newcommand{\calB}{\mathcal{B}}							%where the Bellman equations are satisfied
-\DeclareMathOperator*{\argmax}{argmax}
 \newcommand{\calF}{\mathcal{F}}
 \newcommand{\Wt}{\hat W^t}
 \newcommand{\sigmat}{\hat\sigma^t}
+\newcommand{\Bp}{B_p}									%probing budget
+\newcommand{\Bh}{B_h}									%hiring budget
+\newcommand{\Bt}{B^t}
 
+\renewcommand{\paragraph}[1]{\noindent \textbf{#1}}
+\let\vec\mathbf
 
 %to leave notes
 \usepackage{todonotes}				%pass option disable to remove	    
 \newcommand{\anote}[1]{\todo[author=Alberto,inline,color=blue!10]{#1}}
 \newcommand{\snote}[1]{\todo[author=Sid,inline,color=magenta!10]{#1}}
 \newcommand{\todonote}{\todo[,color=orange!15]{TODO}}
+\setlength{\marginparwidth}{1cm}	%smaller side box
+
+
 
 %algorithm configuration
 \usepackage{algorithm}
